@@ -25,6 +25,7 @@ import com.simibubi.create.foundation.item.ItemDescription.Palette;
 import com.simibubi.create.foundation.item.TooltipHelper;
 import com.simibubi.create.foundation.utility.Lang;
 import com.teammoeg.steampowered.client.ClientUtils;
+import net.fabricmc.fabric.api.registry.FuelRegistry;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
@@ -55,11 +56,8 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
-
-import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 public abstract class BurnerBlock extends Block {
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
@@ -147,7 +145,7 @@ public abstract class BurnerBlock extends Block {
                 pe.setItemInHand(h, cap.extractItem(0, is.getCount(), false));
                 return InteractionResult.SUCCESS;
             }
-        } else if (ForgeHooks.getBurnTime(pe.getItemInHand(h), RecipeType.BLASTING) != 0 && pe.getItemInHand(h).getContainerItem().isEmpty() && !pe.getItemInHand(h).is(Items.LAVA_BUCKET)) {
+        } else if (FuelRegistry.INSTANCE.get(pe.getItemInHand(h).getItem()) != 0 && new ItemStack(pe.getItemInHand(h).getItem().getCraftingRemainingItem()).isEmpty() && !pe.getItemInHand(h).is(Items.LAVA_BUCKET)) {
             IItemHandler cap = w.getBlockEntity(bp).getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).resolve().get();
             pe.setItemInHand(h, cap.insertItem(0, pe.getItemInHand(h), false));
             return InteractionResult.SUCCESS;

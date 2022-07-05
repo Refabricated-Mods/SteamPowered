@@ -24,6 +24,7 @@ import com.simibubi.create.content.contraptions.base.KineticTileEntity;
 import com.simibubi.create.foundation.utility.Lang;
 import com.teammoeg.steampowered.SPConfig;
 
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.nbt.CompoundTag;
@@ -37,8 +38,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
-import net.minecraftforge.energy.IEnergyStorage;
+import team.reborn.energy.api.EnergyStorage;
 
 /**
  * Adapted from: Create: Crafts & Additions under the MIT License
@@ -48,7 +48,7 @@ import net.minecraftforge.energy.IEnergyStorage;
 public class DynamoTileEntity extends KineticTileEntity {
 
     protected final InternalEnergyStorage energy;
-    private LazyOptional<IEnergyStorage> lazyEnergy;
+    private LazyOptional<EnergyStorage> lazyEnergy;
     private boolean redstoneLocked = false;
     
     public static final int MAX_FE_OUT = SPConfig.COMMON.dynamoFeMaxOut.get(); // FE Output
@@ -92,11 +92,12 @@ public class DynamoTileEntity extends KineticTileEntity {
 		return IMPACT;
     }
 
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if (cap == CapabilityEnergy.ENERGY && side==getBlockState().getValue(DynamoBlock.FACING))// && !level.isClientSide
-            return lazyEnergy.cast();
-        return super.getCapability(cap, side);
+    public boolean isEnergyInput(Direction side) {
+        return false;
+    }
+
+    public boolean isEnergyOutput(Direction side) {
+        return side != getBlockState().getValue(DynamoBlock.FACING).getOpposite();
     }
 
     public void read(CompoundTag compound, boolean clientPacket) {
@@ -112,6 +113,7 @@ public class DynamoTileEntity extends KineticTileEntity {
         compound.putBoolean("redstonelocked", redstoneLocked);
     }
 
+    private boolean firstTickState = true;
 
     @Override
     public void tick() {
@@ -120,13 +122,22 @@ public class DynamoTileEntity extends KineticTileEntity {
             return;
         if (this.getBlockState().getValue(DynamoBlock.REDSTONE_LOCKED))
             return;
+        if (firstTickState)
+            firstTick();
+        firstTickState = false;
         if (Math.abs(getSpeed()) > 0 && isSpeedRequirementFulfilled())
             energy.internalProduceEnergy(getEnergyProductionRate((int) getSpeed()));
-    	Direction side=this.getBlockState().getValue(DynamoBlock.FACING);
-        BlockEntity te = level.getBlockEntity(worldPosition.relative(side));
-        if (te != null) {
-	        te.getCapability(CapabilityEnergy.ENERGY, side.getOpposite())
-	        .ifPresent(ies->ies.receiveEnergy(energy.extractEnergy(ies.receiveEnergy(MAX_FE_OUT, true), false), false));
+        for (Direction d : Direction.values()) {
+            if (!isEnergyOutput(d))
+                continue;
+            EnergyStorage ies = getCachedEnergy(d);
+            if (ies == null)
+                continue;
+            try (Transaction transaction = Transaction.openOuter()) {
+                long ext = energy.extract(ies.insert(MAX_FE_OUT, transaction), transaction);
+                ies.insert(ext, transaction);
+                transaction.commit();
+            }
         }
     }
 
@@ -143,5 +154,69 @@ public class DynamoTileEntity extends KineticTileEntity {
 
     public Level getWorld() {
         return getLevel();
+    }
+
+    public void firstTick() {
+        updateCache();
+    }
+
+    public void updateCache() {
+        if (level.isClientSide())
+            return;
+        for (Direction side : Direction.values()) {
+            BlockEntity te = level.getBlockEntity(worldPosition.relative(side));
+            if (te == null) {
+                setCache(side, LazyOptional.empty());
+                continue;
+            }
+        }
+    }
+
+    private LazyOptional<EnergyStorage> escacheUp = LazyOptional.empty();
+    private LazyOptional<EnergyStorage> escacheDown = LazyOptional.empty();
+    private LazyOptional<EnergyStorage> escacheNorth = LazyOptional.empty();
+    private LazyOptional<EnergyStorage> escacheEast = LazyOptional.empty();
+    private LazyOptional<EnergyStorage> escacheSouth = LazyOptional.empty();
+    private LazyOptional<EnergyStorage> escacheWest = LazyOptional.empty();
+
+    public void setCache(Direction side, LazyOptional<EnergyStorage> storage) {
+        switch (side) {
+            case DOWN:
+                escacheDown = storage;
+                break;
+            case EAST:
+                escacheEast = storage;
+                break;
+            case NORTH:
+                escacheNorth = storage;
+                break;
+            case SOUTH:
+                escacheSouth = storage;
+                break;
+            case UP:
+                escacheUp = storage;
+                break;
+            case WEST:
+                escacheWest = storage;
+                break;
+        }
+    }
+
+    public EnergyStorage getCachedEnergy(Direction side) {
+        switch (side) {
+            case DOWN:
+                return escacheDown.orElse(null);
+            case EAST:
+                return escacheEast.orElse(null);
+            case NORTH:
+                return escacheNorth.orElse(null);
+            case SOUTH:
+                return escacheSouth.orElse(null);
+            case UP:
+                return escacheUp.orElse(null);
+            case WEST:
+                return escacheWest.orElse(null);
+        }
+        return null;
     }
 }

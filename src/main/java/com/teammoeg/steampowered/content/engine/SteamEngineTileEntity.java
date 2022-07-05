@@ -58,7 +58,7 @@ public abstract class SteamEngineTileEntity extends EngineTileEntity implements 
 			if (SPTags.STEAM != null)
 				return fluidStack.getFluid().is(SPTags.STEAM);
 			else
-				return fluidStack.getFluid() == FluidRegistry.steam.get();
+				return fluidStack.getFluid() == FluidRegistry.steam.getSource();
 		});
 	}
 
@@ -120,8 +120,9 @@ public abstract class SteamEngineTileEntity extends EngineTileEntity implements 
 					.append(new TranslatableComponent("tooltip.steampowered.steam_engine.running")
 							.withStyle(ChatFormatting.GREEN)));
 		}
-		return this.containedFluidTooltip(tooltip, isPlayerSneaking,
-				getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY));
+		return true;
+		//return this.containedFluidTooltip(tooltip, isPlayerSneaking,
+				//getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY));
 	}
 
 	@Override

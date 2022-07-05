@@ -74,7 +74,7 @@ public class BronzeFlywheelInstance extends KineticTileInstance<FlywheelTileEnti
         shaft = setup(shaftModel().createInstance());
 
         BlockState referenceState = blockState.rotate(Rotation.CLOCKWISE_90);
-        wheel = getTransformMaterial().getModel(SPBlockPartials.BRONZE_FLYWHEEL, referenceState, referenceState.getValue(HORIZONTAL_FACING)).createInstance();
+        wheel = getTransformMaterial().getModel(SPBlockPartials.BRONZE_FLYWHEEL, referenceState.getValue(HORIZONTAL_FACING)).createInstance();
 
         connection = FlywheelBlock.getConnection(blockState);
         if (connection != null) {
@@ -86,10 +86,10 @@ public class BronzeFlywheelInstance extends KineticTileInstance<FlywheelTileEnti
 
             Material<ModelData> mat = getTransformMaterial();
 
-            upperRotating = mat.getModel(SPBlockPartials.BRONZE_FLYWHEEL_UPPER_ROTATING, blockState).createInstance();
-            lowerRotating = mat.getModel(SPBlockPartials.BRONZE_FLYWHEEL_LOWER_ROTATING, blockState).createInstance();
-            upperSliding = mat.getModel(SPBlockPartials.BRONZE_FLYWHEEL_UPPER_SLIDING, blockState).createInstance();
-            lowerSliding = mat.getModel(SPBlockPartials.BRONZE_FLYWHEEL_LOWER_SLIDING, blockState).createInstance();
+            upperRotating = mat.getModel(SPBlockPartials.BRONZE_FLYWHEEL_UPPER_ROTATING).createInstance();
+            lowerRotating = mat.getModel(SPBlockPartials.BRONZE_FLYWHEEL_LOWER_ROTATING).createInstance();
+            upperSliding = mat.getModel(SPBlockPartials.BRONZE_FLYWHEEL_UPPER_SLIDING).createInstance();
+            lowerSliding = mat.getModel(SPBlockPartials.BRONZE_FLYWHEEL_LOWER_SLIDING).createInstance();
 
             connectors = Lists.newArrayList(upperRotating, lowerRotating, upperSliding, lowerSliding);
         } else {
@@ -185,7 +185,7 @@ public class BronzeFlywheelInstance extends KineticTileInstance<FlywheelTileEnti
 
     protected Instancer<RotatingData> shaftModel() {
         Direction opposite = facing.getOpposite();
-        return getRotatingMaterial().getModel(AllBlockPartials.SHAFT_HALF, blockState, opposite);
+        return getRotatingMaterial().getModel(AllBlockPartials.SHAFT_HALF, opposite);
     }
 
     protected void transformConnector(TransformStack ms, boolean upper, boolean rotating, float angle, boolean flip) {

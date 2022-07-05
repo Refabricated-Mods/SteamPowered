@@ -26,15 +26,13 @@ import com.jozufozu.flywheel.core.PartialModel;
 import com.simibubi.create.AllBlockPartials;
 import com.simibubi.create.AllShapes;
 import com.simibubi.create.content.contraptions.components.flywheel.engine.EngineBlock;
-import com.simibubi.create.content.contraptions.components.flywheel.engine.FurnaceEngineTileEntity;
-import com.simibubi.create.foundation.block.ITE;
 import com.teammoeg.steampowered.FluidRegistry;
 import com.teammoeg.steampowered.ItemRegistry;
 import com.teammoeg.steampowered.client.Particles;
-import com.teammoeg.steampowered.registrate.SPTiles;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -55,13 +53,9 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-
-import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 public class SteamEngineBlock extends EngineBlock {
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
@@ -106,7 +100,7 @@ public class SteamEngineBlock extends EngineBlock {
         return true;
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void animateTick(BlockState p_180655_1_, Level p_180655_2_, BlockPos p_180655_3_, Random p_180655_4_) {
         if (p_180655_1_.getValue(LIT)) {
             double d0 = p_180655_3_.getX() + 0.5D;
@@ -123,20 +117,20 @@ public class SteamEngineBlock extends EngineBlock {
             double d5 = direction$axis == Direction.Axis.X ? direction.getStepX() * 0.52D : d4;
             double d6 = p_180655_4_.nextDouble() * 9.0D / 16.0D;
             double d7 = direction$axis == Direction.Axis.Z ? direction.getStepZ() * 0.52D : d4;
-            p_180655_2_.addParticle(Particles.STEAM.get(), d0 + d5, d1 + d6, d2 + d7, 0.0D, 0.0D, 0.0D);
+            p_180655_2_.addParticle(Particles.STEAM, d0 + d5, d1 + d6, d2 + d7, 0.0D, 0.0D, 0.0D);
         }
     }
 
     @Override
     public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult blockRayTraceResult) {
-        if (player.getItemInHand(hand).getItem() == ItemRegistry.pressurizedSteamContainer.get()) {
+        if (player.getItemInHand(hand).getItem() == ItemRegistry.pressurizedSteamContainer) {
             BlockEntity te = world.getBlockEntity(pos);
             if (te instanceof SteamEngineTileEntity) {
                 SteamEngineTileEntity steamEngine = (SteamEngineTileEntity) te;
                 IFluidHandler cap = steamEngine.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY).resolve().get();
-                cap.fill(new FluidStack(FluidRegistry.steam.get(), 1000), IFluidHandler.FluidAction.EXECUTE);
+                cap.fill(new FluidStack(FluidRegistry.steam.getSource(), 1000), IFluidHandler.FluidAction.EXECUTE);
                 player.getItemInHand(hand).shrink(1);
-                ItemStack ret=new ItemStack(ItemRegistry.pressurizedGasContainer.get());
+                ItemStack ret=new ItemStack(ItemRegistry.pressurizedGasContainer);
                 if(!player.addItem(ret))
                 	world.addFreshEntity(new ItemEntity(world, pos.getX(),pos.getY(),pos.getZ(),ret));
                 return InteractionResult.SUCCESS;

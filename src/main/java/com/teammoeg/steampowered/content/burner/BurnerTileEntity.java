@@ -25,6 +25,9 @@ import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import com.teammoeg.steampowered.SPConfig;
 
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemStackHandler;
+import net.fabricmc.fabric.api.registry.FuelRegistry;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.item.ItemStack;
@@ -36,25 +39,22 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
 
 public abstract class BurnerTileEntity extends SmartTileEntity implements IHaveGoggleInformation {
     private ItemStackHandler inv = new ItemStackHandler() {
-
         @Override
-        public boolean isItemValid(int slot,ItemStack stack) {
-            if (ForgeHooks.getBurnTime(stack, RecipeType.SMELTING) != 0&&stack.getContainerItem().isEmpty()) return true;
+        public boolean isItemValid(int slot, ItemVariant resource) {
+            if (FuelRegistry.INSTANCE.get(resource.getItem()) != 0) return true;
             return false;
         }
 
     };
     int HURemain;
-    private LazyOptional<IItemHandler> holder = LazyOptional.of(() -> inv);
+    private LazyOptional<ItemStackHandler> holder = LazyOptional.of(() -> inv);
 
     public BurnerTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -105,7 +105,7 @@ public abstract class BurnerTileEntity extends SmartTileEntity implements IHaveG
     }
 
     private void refreshCapability() {
-        LazyOptional<IItemHandler> oldCap = this.holder;
+        LazyOptional<ItemStackHandler> oldCap = this.holder;
         this.holder = LazyOptional.of(() -> {
             return this.inv;
         });
@@ -135,7 +135,7 @@ public abstract class BurnerTileEntity extends SmartTileEntity implements IHaveG
 
     private boolean consumeFuel() {
     	if(this.getBlockState().getValue(BurnerBlock.REDSTONE_LOCKED))return false;
-        int time = ForgeHooks.getBurnTime(inv.getStackInSlot(0), RecipeType.SMELTING);
+        int time = FuelRegistry.INSTANCE.get(inv.getStackInSlot(0).getItem());
         if (time <= 0) return false;
         inv.getStackInSlot(0).shrink(1);
         HURemain += time * SPConfig.COMMON.HUPerFuelTick.get()*getEfficiency();//2.4HU/t

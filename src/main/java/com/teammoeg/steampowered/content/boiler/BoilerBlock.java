@@ -49,9 +49,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
-
-import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
 public abstract class BoilerBlock extends Block implements LiquidBlockContainer {
 	@Override
@@ -59,7 +57,7 @@ public abstract class BoilerBlock extends Block implements LiquidBlockContainer 
 		BlockEntity te = w.getBlockEntity(p);
 		if (te instanceof BoilerTileEntity) {
 			BoilerTileEntity boiler = (BoilerTileEntity) te;
-			if (boiler.input.fill(new FluidStack(f, 1000), FluidAction.SIMULATE) == 1000)
+			if (boiler.input.fill(new FluidStack(f, 1000), IFluidHandler.FluidAction.SIMULATE) == 1000)
 				return true;
 		}
 		return false;
@@ -70,8 +68,8 @@ public abstract class BoilerBlock extends Block implements LiquidBlockContainer 
 		BlockEntity te = w.getBlockEntity(p);
 		if (te instanceof BoilerTileEntity) {
 			BoilerTileEntity boiler = (BoilerTileEntity) te;
-			if (boiler.input.fill(new FluidStack(f.getType(), 1000), FluidAction.SIMULATE) == 1000) {
-				boiler.input.fill(new FluidStack(f.getType(), 1000), FluidAction.EXECUTE);
+			if (boiler.input.fill(new FluidStack(f.getType(), 1000), IFluidHandler.FluidAction.SIMULATE) == 1000) {
+				boiler.input.fill(new FluidStack(f.getType(), 1000), IFluidHandler.FluidAction.EXECUTE);
 				return true;
 			}
 		}
@@ -91,7 +89,7 @@ public abstract class BoilerBlock extends Block implements LiquidBlockContainer 
 					p_180655_2_.playLocalSound(d0, d1, d2, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.25F, 0.25F, false);
 					int count=8;
 					while(--count!=0)
-					p_180655_2_.addParticle(Particles.STEAM.get(), d0+p_180655_4_.nextFloat(), d1, d2+p_180655_4_.nextFloat(), 0.0D, 0.0D, 0.0D);
+					p_180655_2_.addParticle(Particles.STEAM, d0+p_180655_4_.nextFloat(), d1, d2+p_180655_4_.nextFloat(), 0.0D, 0.0D, 0.0D);
 				//}
 			}
 		}
