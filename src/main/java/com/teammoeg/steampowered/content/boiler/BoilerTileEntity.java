@@ -36,13 +36,12 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 
 import java.util.List;
 
 public abstract class BoilerTileEntity extends SmartTileEntity implements IHeatReceiver, IHaveGoggleInformation {
-    FluidTank input = new FluidTank(10000,s->s.getFluid() == Fluids.WATER);
+    FluidTank input = new FluidTank(10000, s->s.getFluid() == Fluids.WATER);
     FluidTank output = new FluidTank(10000);
     private IFluidHandler ft = new IFluidHandler() {
         @Override
@@ -60,6 +59,16 @@ public abstract class BoilerTileEntity extends SmartTileEntity implements IHeatR
                 default:
                     return null;
             }
+        }
+
+        @Override
+        public long getTankCapacityInDroplets(int tank) {
+            return 810000;
+        }
+
+        @Override
+        public long fillDroplets(FluidStack stack, FluidAction action) {
+            return 0;
         }
 
         @Override
@@ -82,6 +91,11 @@ public abstract class BoilerTileEntity extends SmartTileEntity implements IHeatR
         @Override
         public FluidStack drain(FluidStack resource, FluidAction action) {
             return output.drain(resource, action);
+        }
+
+        @Override
+        public FluidStack drain(long droplets, FluidAction action) {
+            return null;
         }
 
         @Override
@@ -148,8 +162,8 @@ public abstract class BoilerTileEntity extends SmartTileEntity implements IHeatR
 	            int consume = Math.min(getHUPerTick(), heatreceived);
 	            heatreceived = 0;
 	            double waterconsume=(SPConfig.COMMON.steamPerWater.get()*10);
-	            consume =  Math.min((int)(this.input.drain((int) Math.ceil(consume / waterconsume), FluidAction.EXECUTE).getAmount() * waterconsume), consume);
-	            this.output.fill(new FluidStack(FluidRegistry.steam.get(), consume / 10), FluidAction.EXECUTE);
+	            consume =  Math.min((int)(this.input.drain((int) Math.ceil(consume / waterconsume), IFluidHandler.FluidAction.EXECUTE).getAmount() * waterconsume), consume);
+	            this.output.fill(new FluidStack(FluidRegistry.steam.getSource(), consume / 10), IFluidHandler.FluidAction.EXECUTE);
 	            flag=true;
         	}
         	this.setChanged();
@@ -165,8 +179,8 @@ public abstract class BoilerTileEntity extends SmartTileEntity implements IHeatR
     }
 
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        this.containedFluidTooltip(tooltip, isPlayerSneaking, LazyOptional.of(() -> input));
-        this.containedFluidTooltip(tooltip, isPlayerSneaking, LazyOptional.of(() -> output));
+        //this.containedFluidTooltip(tooltip, isPlayerSneaking, LazyOptional.of(() -> input));
+        //this.containedFluidTooltip(tooltip, isPlayerSneaking, LazyOptional.of(() -> output));
         return true;
     }
 

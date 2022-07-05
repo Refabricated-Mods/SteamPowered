@@ -18,6 +18,8 @@
 
 package com.teammoeg.steampowered;
 
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.tags.FluidTags;
@@ -32,7 +34,7 @@ public class SPTags {
     public static final TagKey<Fluid> STEAM = forgeTag("steam");
 
     private static TagKey<Fluid> forgeTag(String name) {
-        return FluidTags.create(new ResourceLocation("forge", name));
+        return TagKey.create(Registry.FLUID_REGISTRY, new ResourceLocation("c", name));
     }
 
 }
